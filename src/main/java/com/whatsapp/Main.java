@@ -1,17 +1,40 @@
-package com.whatsapp;
+package com.whatsapp; // הצהרה על החבילה (Package) שבה נמצאת המחלקה שלנו. עוזר לארגן את הקוד.
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-public class Main {
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+import javax.swing.JFrame; // ייבוא המחלקה JFrame מהספרייה הגרפית של Java (Swing). מחלקה זו מייצגת חלון רגיל של מערכת ההפעלה.
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
-        }
+public class Main { // הגדרת המחלקה הראשית של התוכנית. השם "Main" הוא מוסכמה לנקודת ההתחלה.
+
+    // זוהי מתודת ה-main. כשמריצים תוכנית Java, זוהי הפונקציה הראשונה שמערכת ההפעלה מחפשת ומפעילה.
+    public static void main(String[] args) { 
+        
+        // יוצר אובייקט חלון חדש (JFrame) ונותן לו את הכותרת "Pacman" שתוצג למעלה.
+        JFrame frame = new JFrame("Pacman"); 
+        
+        // מגדיר מה קורה כשלוחצים על ה-"X" (סגירה) בפינת החלון. 
+        // EXIT_ON_CLOSE אומר למערכת לסיים את התוכנית לחלוטין ולסגור את כל התהליכונים (Threads).
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
+        
+        // קובע את הגודל ההתחלתי של החלון בפיקסלים. (600 רוחב, 800 גובה).
+        frame.setSize(600, 800);
+        
+        // מאפשר למשתמש להגדיל, להקטין או למקסם את החלון עם העכבר. 
+        // בגלל שכתבנו קוד שמתאים את גודל הלוח דינמית, המשחק יסתדר מעצמו!
+        frame.setResizable(true); 
+        
+        // יוצר מופע (אובייקט) חדש של המחלקה Game שלנו. 
+        // המחלקה Game היא פאנל (JPanel) שמכיל את כל הלוגיקה והציור של המשחק.
+        Game game = new Game(); 
+        
+        // מוסיף את הפאנל של המשחק (game) אל תוך החלון הראשי (frame) שיצרנו.
+        frame.add(game); 
+        
+        // ממקם את החלון בדיוק במרכז המסך של המחשב. העברת null אומרת "אל תמקם יחסית לחלון אחר, אלא יחסית למסך".
+        frame.setLocationRelativeTo(null); 
+        
+        // הופך את החלון לגלוי על המסך (ברירת המחדל היא מוסתר).
+        frame.setVisible(true); 
+        
+        // קורא לפונקציה startGame() שיצרנו בתוך המחלקה Game כדי להתחיל להריץ את הטיימרים ואת הלוגיקה של המשחק.
+        game.startGame();
     }
 }
