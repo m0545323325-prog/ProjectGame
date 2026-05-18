@@ -32,11 +32,9 @@ public class Ghost extends Character implements Runnable {
             System.out.println("Error loading ghost.jpg: " + e.getMessage()); // Debug print
         }
         
-        int randomDirection = random.nextInt(4);
-        if (randomDirection == 0) { dx = speed; }
-        else if (randomDirection == 1) { dx = -speed; }
-        else if (randomDirection == 2) { dy = speed; }
-        else { dy = -speed; }
+        // Initialize dx, dy to 0. The move method will determine the first actual direction.
+        this.dx = 0;
+        this.dy = 0;
     }
 
     @Override
@@ -90,62 +88,70 @@ public class Ghost extends Character implements Runnable {
             int pacmanYBlock = pacman.getY() / board.getBlockSize();
 
             if (currentYBlock >= 0 && currentYBlock < nBlocks && currentXBlock >= 0 && currentXBlock < nBlocks) {
-                
-                List<int[]> possibleMoves = new ArrayList<>(); 
-                List<Double> distances = new ArrayList<>(); 
 
+                List<int[]> validMoves = new ArrayList<>(); // All moves that are not walls
+                List<Double> validDistances = new ArrayList<>();
+
+                // Check right
                 if (currentXBlock < nBlocks - 1 && levelData[currentYBlock * nBlocks + currentXBlock + 1] != 3) {
-                    if (!(dx < 0 && dy == 0)) { 
-                        possibleMoves.add(new int[]{speed, 0});
-                        distances.add(calculateManhattanDistance(currentXBlock + 1, currentYBlock, pacmanXBlock, pacmanYBlock));
-                    }
+                    validMoves.add(new int[]{speed, 0});
+                    validDistances.add(calculateManhattanDistance(currentXBlock + 1, currentYBlock, pacmanXBlock, pacmanYBlock));
                 }
-                
+                // Check left
                 if (currentXBlock > 0 && levelData[currentYBlock * nBlocks + currentXBlock - 1] != 3) {
-                    if (!(dx > 0 && dy == 0)) { 
-                        possibleMoves.add(new int[]{-speed, 0});
-                        distances.add(calculateManhattanDistance(currentXBlock - 1, currentYBlock, pacmanXBlock, pacmanYBlock));
-                    }
+                    validMoves.add(new int[]{-speed, 0});
+                    validDistances.add(calculateManhattanDistance(currentXBlock - 1, currentYBlock, pacmanXBlock, pacmanYBlock));
                 }
-                
+                // Check down
                 if (currentYBlock < nBlocks - 1 && levelData[(currentYBlock + 1) * nBlocks + currentXBlock] != 3) {
-                    if (!(dy < 0 && dx == 0)) { 
-                        possibleMoves.add(new int[]{0, speed});
-                        distances.add(calculateManhattanDistance(currentXBlock, currentYBlock + 1, pacmanXBlock, pacmanYBlock));
-                    }
+                    validMoves.add(new int[]{0, speed});
+                    validDistances.add(calculateManhattanDistance(currentXBlock, currentYBlock + 1, pacmanXBlock, pacmanYBlock));
                 }
-                
+                // Check up
                 if (currentYBlock > 0 && levelData[(currentYBlock - 1) * nBlocks + currentXBlock] != 3) {
-                    if (!(dy > 0 && dx == 0)) { 
-                        possibleMoves.add(new int[]{0, -speed});
-                        distances.add(calculateManhattanDistance(currentXBlock, currentYBlock - 1, pacmanXBlock, pacmanYBlock));
-                    }
+                    validMoves.add(new int[]{0, -speed});
+                    validDistances.add(calculateManhattanDistance(currentXBlock, currentYBlock - 1, pacmanXBlock, pacmanYBlock));
                 }
-                
-                if (possibleMoves.isEmpty()) {
-                    if (currentXBlock < nBlocks - 1 && levelData[currentYBlock * nBlocks + currentXBlock + 1] != 3) {
-                        possibleMoves.add(new int[]{speed, 0});
-                        distances.add(calculateManhattanDistance(currentXBlock + 1, currentYBlock, pacmanXBlock, pacmanYBlock));
+
+                List<int[]> possibleMoves = new ArrayList<>(); // Moves that are not reversing
+                List<Double> distances = new ArrayList<>();
+
+                boolean isInitialMove = (dx == 0 && dy == 0);
+
+                if (isInitialMove) {
+                    // For the very first move, any valid direction is possible.
+                    possibleMoves.addAll(validMoves);
+                    distances.addAll(validDistances);
+                } else {
+                    // For subsequent moves, filter out direct reversals.
+                    for (int i = 0; i < validMoves.size(); i++) {
+                        int[] move = validMoves.get(i);
+                        // Check if this move is a direct reversal of the current direction
+                        if (!((move[0] == -dx && move[1] == -dy) || (move[0] == dx && move[1] == dy && dx == 0 && dy == 0))) {
+                            possibleMoves.add(move);
+                            distances.add(validDistances.get(i));
+                        }
                     }
-                    if (currentXBlock > 0 && levelData[currentYBlock * nBlocks + currentXBlock - 1] != 3) {
-                        possibleMoves.add(new int[]{-speed, 0});
-                        distances.add(calculateManhattanDistance(currentXBlock - 1, currentYBlock, pacmanXBlock, pacmanYBlock));
-                    }
-                    if (currentYBlock < nBlocks - 1 && levelData[(currentYBlock + 1) * nBlocks + currentXBlock] != 3) {
-                        possibleMoves.add(new int[]{0, speed});
-                        distances.add(calculateManhattanDistance(currentXBlock, currentYBlock + 1, pacmanXBlock, pacmanYBlock));
-                    }
-                    if (currentYBlock > 0 && levelData[(currentYBlock - 1) * nBlocks + currentXBlock] != 3) {
-                        possibleMoves.add(new int[]{0, -speed});
-                        distances.add(calculateManhattanDistance(currentXBlock, currentYBlock - 1, pacmanXBlock, pacmanYBlock));
+
+                    // If all non-reversing moves are blocked, then reversing is the only option.
+                    if (possibleMoves.isEmpty() && !validMoves.isEmpty()) {
+                        // Find the reverse move in validMoves and add it.
+                        for (int i = 0; i < validMoves.size(); i++) {
+                            int[] move = validMoves.get(i);
+                            if (move[0] == -dx && move[1] == -dy) {
+                                possibleMoves.add(move);
+                                distances.add(validDistances.get(i));
+                                break; // Only one reverse move possible
+                            }
+                        }
                     }
                 }
 
                 if (!possibleMoves.isEmpty()) {
-                    double minDistance = Double.MAX_VALUE; 
-                    for (Double dist : distances) { 
+                    double minDistance = Double.MAX_VALUE;
+                    for (Double dist : distances) {
                         if (dist < minDistance) {
-                            minDistance = dist; 
+                            minDistance = dist;
                         }
                     }
 
@@ -157,15 +163,19 @@ public class Ghost extends Character implements Runnable {
                     }
 
                     int[] chosenMove = bestMoves.get(random.nextInt(bestMoves.size()));
-                    
+
                     dx = chosenMove[0];
                     dy = chosenMove[1];
-                    
+
                 } else {
+                    // This case should ideally not be reached if the maze is valid and not a dead end.
+                    // If it is reached, it means the ghost is completely trapped or has no valid moves.
+                    // Reversing current direction as a last resort.
                     dx = -dx;
                     dy = -dy;
                 }
             } else {
+                 // Ghost is somehow outside the board boundaries, reverse direction.
                  dx = -dx;
                  dy = -dy;
             }

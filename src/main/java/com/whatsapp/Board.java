@@ -160,4 +160,14 @@ public class Board { // הגדרת המחלקה Board. אחראית על שמי�
             levelData[index] = 0;
         }
     }
+
+    // New method to check if all items have been eaten
+    public boolean isAllItemsEaten() {
+        for (int i = 0; i < levelData.length; i++) {
+            if (levelData[i] == 1 || levelData[i] == 2) {
+                return false; // Found an item that hasn't been eaten
+            }
+        }
+        return true; // All items have been eaten
+    }
 }

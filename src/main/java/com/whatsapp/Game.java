@@ -27,6 +27,7 @@ public class Game extends JPanel implements ActionListener {
     private Ghost[] ghosts; 
     private Timer renderTimer; 
     private boolean isGameOver = false; 
+    private boolean isGameWon = false; // New field for win condition
 
     private int currentBlockSize = 0; 
     
@@ -124,6 +125,7 @@ public class Game extends JPanel implements ActionListener {
     private void restartGame() {
         replayButton.setVisible(false);
         isGameOver = false;
+        isGameWon = false; // Reset win condition
         
         stopThreads();
         
@@ -145,13 +147,12 @@ public class Game extends JPanel implements ActionListener {
         
         // מנסה לטעון מחדש את השמע בכל פעם שמתחילים, כך שאם יש שגיאה המשתמש יראה אותה שוב!
         SoundManager.loadBackgroundMusic("music.wav");
-        
-        pacman = new Pacman(blockSize * 9, blockSize * 15, board); 
-        ghosts = new Ghost[3];
-        ghosts[0] = new Ghost(blockSize * 9, blockSize * 9, Color.RED, board, pacman);
-        ghosts[1] = new Ghost(blockSize * 9, blockSize * 10, Color.PINK, board, pacman);
-        ghosts[2] = new Ghost(blockSize * 8, blockSize * 10, Color.CYAN, board, pacman);
-        //ghosts[3] = new Ghost(blockSize * 10, blockSize * 10, Color.ORANGE, board, pacman);
+
+        pacman = new Pacman(blockSize * 9, blockSize * 15, board);
+        ghosts = new Ghost[3]; 
+        ghosts[0] = new Ghost(blockSize * 9, blockSize * 9, Color.RED, board, pacman); // (9,9) is a valid path
+        ghosts[1] = new Ghost(blockSize * 9, blockSize * 8, Color.PINK, board, pacman); // (9,8) is a valid path
+        ghosts[2] = new Ghost(blockSize * 9, blockSize * 7, Color.CYAN, board, pacman); // (9,7) is a valid path
         
         pacman.updateSize(blockSize); 
         for (Ghost ghost : ghosts) {
@@ -308,7 +309,12 @@ public class Game extends JPanel implements ActionListener {
         if (isGameOver) {
             g.setColor(Color.WHITE); 
             g.setFont(new Font("Arial", Font.BOLD, 40)); 
-            String msg = "איזה לוזררר!!!";
+            String msg;
+            if (isGameWon) {
+                msg = "כל הכבוד!"; // Well Done!
+            } else {
+                msg = "איזה לוזררר!!!"; // What a loser!!!
+            }
             FontMetrics fm = g.getFontMetrics();
             int msgWidth = fm.stringWidth(msg);
             g.drawString(msg, (width - msgWidth) / 2, height / 2 - 20); 
@@ -329,6 +335,7 @@ public class Game extends JPanel implements ActionListener {
         for (Ghost ghost : ghosts) { 
             if (pacman.getBounds().intersects(ghost.getBounds())) { 
                 isGameOver = true; 
+                isGameWon = false; // Ensure game won is false if collided with ghost
                 
                 SoundManager.stopMusic(); 
                 SoundManager.playSound("gameover.wav");
@@ -337,6 +344,19 @@ public class Game extends JPanel implements ActionListener {
                 replayButton.setVisible(true); 
                 break; 
             }
+        }
+
+        // Check for win condition after Pacman has potentially eaten an item
+        if (pacman != null && board.isAllItemsEaten()) {
+            isGameOver = true;
+            isGameWon = true;
+            
+            SoundManager.stopMusic();
+            // Optionally play a win sound here
+            // SoundManager.playSound("win.wav"); 
+
+            stopThreads();
+            replayButton.setVisible(true);
         }
     }
 
