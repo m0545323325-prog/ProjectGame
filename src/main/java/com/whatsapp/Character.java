@@ -1,70 +1,48 @@
-package com.whatsapp; // הצהרה על שיוך הקובץ לחבילת הווטסאפ (או כל חבילה בפרויקט שלך)
+package com.whatsapp;
 
-import java.awt.Graphics; // מאפשר שימוש במחלקת הציור (צבעים, צורות) 
-import java.awt.Rectangle; // מאפשר יצירת צורת מלבן, שבעזרתה נבדוק חיתוכים/התנגשויות
+import java.awt.Graphics;
+import java.awt.Rectangle;
 
-// מחלקה זו מוגדרת כ"אבסטרקטית" (abstract) כי היא משמשת רק כתבנית-אב.
-// כלומר, לעולם לא ניצור מופע "Character" סתם ככה, תמיד ניצור ממנה "פקמן" או "רוח" (שיורשים אותה).
 public abstract class Character { 
 
-    // המשתנים האלו "מוגנים" (protected), כלומר רק המחלקות היורשות (כמו Pacman) יכולות לגשת אליהם.
+    protected volatile int x;
+    protected volatile int y;
     
-    // volatile אומר ל-Java לשמור את המשתנה רק בזיכרון המרכזי (RAM) ולא במטמון (Cache) של התהליכון (Thread).
-    // זה קריטי כי פקמן רץ בתהליכון א', וצייר המסך (שקורא את x) רץ בתהליכון ב'. ככה הם מזהים שינויים מיידית!
-    protected volatile int x; // מיקום אופקי בציר ה-X
-    protected volatile int y; // מיקום אנכי בציר ה-Y
+    protected volatile int dx;
+    protected volatile int dy;
     
-    protected volatile int dx; // השינוי (Delta) שנעשה על ציר ה-X בכל פעימה (אם זזים ימינה, זה שווה 4. אם שמאלה: -4).
-    protected volatile int dy; // השינוי (Delta) שנעשה על ציר ה-Y בכל פעימה (אם זזים למטה, זה שווה 4. אם למעלה: -4).
+    protected final int speed = 4;
     
-    // קבוע סופי (final) של המהירות שלנו בפיקסלים לכל "צעד" של הדמות במחזור הטיימר.
-    // שים לב שזה 4 (מספר שמתחלק ב-4 כמובן) כדי שלא "נדלג" מעבר לגודל משבצת הלוח.
-    protected final int speed = 4; 
-    
-    // גודלה של הדמות עצמה בפיקסלים (רוחבה וגובהה). גם הוא מעודכן על ידי ה-Thread של הציור בעת שינוי גודל חלון.
     protected volatile int size = 20; 
 
-    // בנאי המחלקה (Constructor) - פונקציה שמופעלת פעם אחת בלבד בעת יצירת אובייקט.
-    // מקבלת כפרמטרים את המיקום ההתחלתי (x,y) שאליו תזדקק הדמות ברגע שתוולד.
     public Character(int x, int y) { 
-        this.x = x; // "this.x" זה המשתנה של המחלקה (שורה 13), וה-"x" זה הפרמטר מהסוגריים בבנאי.
+        this.x = x;
         this.y = y; 
     }
 
-    // מתודה (פונקציה) שמפעילה פיזית את תנועת הדמות בעזרת הוספת כיוון התנועה הנוכחי (dx, dy) למיקום שלה (x, y).
     protected void performMove() {
-        x += dx; // מוסיף ל-x הקיים את הערך של dx, ושומר חזרה אל תוך x (מקביל ל- x = x + dx)
-        y += dy; // מוסיף ל-y הקיים את הערך של dy
+        x += dx;
+        y += dy;
     }
 
-    // פונקציה אבסטרקטית! כל מחלקה שתרש את Character *חייבת* לייצר פונקציה כזו בעצמה ולכתוב את הלוגיקה שלה.
-    // הפונקציה הזו תקבע לאן הדמות זזה, מתי היא נתקעת בקיר (בעזרת ה-Board), ואיך.
     public abstract void move(Board board);
 
-    // פונקציית Getter ציבורית להשגת ערך ה-X (שימושי לצייר שצריך לדעת איפה הדמות ממוקמת).
     public int getX() { return x; }
     
-    // פונקציית Getter ציבורית להשגת ערך ה-Y.
     public int getY() { return y; }
     
-    // פונקציית Setter שקובעת למיקום מדויק חדש (למשל, כאשר משנים גודל מסך והמשבצות גדלות/קטנות ביחס למרכז).
     public void setPosition(int x, int y) { 
         this.x = x; 
         this.y = y; 
     }
 
-    // פונקציה שמחזירה מלבן וירטואלי (בלתי נראה) לפי הגודל והמיקום הנוכחי של הדמות.
-    // היא קריטית מאוד לצורך בדיקת ההתנגשויות (intersects) בין דמויות בספריה של Java 2D.
     public Rectangle getBounds() { 
-        return new Rectangle(x, y, size, size); // "שבלונה" בצורת מלבן שחוזרת לאחור
+        return new Rectangle(x, y, size, size);
     }
     
-    // פונקציה לעדכון המשתנה `size` בהתאם לגודל המשבצת הנוכחי שנגזר מגודל המסך.
     public void updateSize(int newSize) { 
         this.size = newSize; 
     }
 
-    // מתודה אבסטרקטית נוספת לציור הדמות! יורשי המחלקה יקבלו את צייר הגרפיקה (g), את הגודל המעודכן,
-    // והכי חשוב - את מרחקי ההיסט מהקצוות (screenOffsetX, screenOffsetY) כדי לצייר במרכז ולא למעלה בשמאל.
     public abstract void draw(Graphics g, int size, int screenOffsetX, int screenOffsetY);
 }

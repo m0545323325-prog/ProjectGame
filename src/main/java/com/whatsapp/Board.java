@@ -1,28 +1,17 @@
-package com.whatsapp; // הצהרה על החבילה שהמחלקה שייכת אליה (מונעת התנגשות עם מחלקות אחרות בעלות שם זהה)
+package com.whatsapp;
 
-import java.awt.Color; // ייבוא המחלקה Color. משמשת לצביעת הרקע (שחור), הקירות (כחול כהה) והתווים (לבן).
-import java.awt.Graphics; // ייבוא המחלקה Graphics. זהו ה"מכחול" שבעזרתו אנו מציירים על הפאנל.
-import java.awt.Image; // (נשאר למקרה שנרצה להחזיר תמונות בעתיד) - מחלקה המייצגת תמונה בזיכרון.
-import java.awt.Font; // ייבוא המחלקה Font. מאפשרת לנו להגדיר סוג, סגנון (מודגש, נטוי) וגודל של גופן טקסט.
-import java.awt.FontMetrics; // ייבוא המחלקה FontMetrics. כלי למדידת רוחב וגובה של טקסט ספציפי כדי למרכז אותו במדויק.
-import javax.swing.ImageIcon; // (נשאר למקרה שנרצה) - מחלקה לטעינת תמונות מקבצים מהדיסק הקשיח.
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import javax.swing.ImageIcon;
 
-public class Board { // הגדרת המחלקה Board. אחראית על שמירת מצב הלוח (הקירות והתווים) וציורו על המסך.
+public class Board {
 
-    // קבוע סופי (final) שמגדיר את מספר המשבצות (בלוקים) לאורך ולרוחב הלוח (19 על 19 במקרה שלנו).
-    // הקבוע הזה שימושי כדי שלא נצטרך לרשום את המספר 19 בכל מקום שוב ושוב.
-    private final int N_BLOCKS = 19; 
-    
-    // משתנה שומר את הגודל של כל משבצת בלוח (בפיקסלים). הערך משתנה דינמית לפי גודל החלון.
-    private int blockSize; 
+    private final int N_BLOCKS = 19;
+    private int blockSize;
 
-    // מערך דו-ממדי המושטח למערך חד-ממדי. אורך המערך הוא 19 * 19 = 361 תאים.
-    // כל תא במערך מייצג משבצת בלוח ומכיל מספר שמסמל את התוכן של אותה משבצת.
-    // המקרא:
-    // 0 = ריק (שטח שחור נקי)
-    // 1 = תו נגינה רגיל (נקודה רגילה בפקמן)
-    // 2 = צמד תווי נגינה (נקודת כוח - Power Pellet)
-    // 3 = קיר כחול אטום
     private final short levelData[] = {
             3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
             3, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 3,
@@ -30,10 +19,10 @@ public class Board { // הגדרת המחלקה Board. אחראית על שמי�
             3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3,
             3, 1, 3, 3, 1, 3, 1, 3, 3, 3, 3, 3, 1, 3, 1, 3, 3, 1, 3,
             3, 1, 1, 1, 1, 3, 1, 1, 1, 3, 1, 1, 1, 3, 1, 1, 1, 1, 3,
-            3, 3, 3, 3, 1, 3, 3, 3, 0, 3, 0, 3, 3, 3, 1, 3, 3, 3, 3, // השורה הזו מכילה את הכניסה למנהרה
-            3, 3, 3, 3, 1, 3, 0, 0, 0, 0, 0, 0, 0, 3, 1, 3, 3, 3, 3, // כאן ה"כלוב" המקורי של הרוחות
-            3, 3, 3, 3, 1, 3, 0, 3, 3, 1, 3, 3, 0, 3, 1, 3, 3, 3, 3, // (אבל אנחנו יצרנו אותן מחוץ לכלוב)
-            0, 0, 0, 0, 1, 0, 0, 3, 1, 2, 1, 3, 0, 0, 1, 0, 0, 0, 0, // שורה 9 (אינדקס 9 מתוך 0-18) - נתיב המנהרה האופקית!
+            3, 3, 3, 3, 1, 3, 3, 3, 0, 3, 0, 3, 3, 3, 1, 3, 3, 3, 3,
+            3, 3, 3, 3, 1, 3, 0, 0, 0, 0, 0, 0, 0, 3, 1, 3, 3, 3, 3,
+            3, 3, 3, 3, 1, 3, 0, 3, 3, 1, 3, 3, 0, 3, 1, 3, 3, 3, 3,
+            0, 0, 0, 0, 1, 0, 0, 3, 1, 2, 1, 3, 0, 0, 1, 0, 0, 0, 0,
             3, 3, 3, 3, 1, 3, 0, 3, 3, 3, 3, 3, 0, 3, 1, 3, 3, 3, 3,
             3, 3, 3, 3, 1, 3, 0, 0, 0, 0, 0, 0, 0, 3, 1, 3, 3, 3, 3,
             3, 3, 3, 3, 1, 3, 0, 3, 3, 3, 3, 3, 0, 3, 1, 3, 3, 3, 3,
@@ -42,132 +31,92 @@ public class Board { // הגדרת המחלקה Board. אחראית על שמי�
             3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3,
             3, 1, 3, 3, 1, 3, 1, 3, 3, 3, 3, 3, 1, 3, 1, 3, 3, 1, 3,
             3, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 3,
-            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, // קיר תחתון
+            3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
     };
 
-    public Board() { // הבנאי (Constructor) של המחלקה Board. נקרא כאשר אנחנו יוצרים לוח חדש עם `new Board()`.
-        // כרגע אין לנו תמונות לטעון אז הבנאי ריק, אבל פה יכולנו לכתוב קוד הכנה ללוח אם היינו צריכים.
+    public Board() {
     }
 
-    // מתודה ראשית לציור הלוח. היא מקבלת את מכחול הציור (g) ואת הרוחב והגובה הנוכחיים של חלון המשחק.
-    public void drawBoard(Graphics g, int width, int height) { 
+    public void drawBoard(Graphics g, int width, int height) {
         
-        // מוצא איזה צד יותר קטן, הרוחב או הגובה. הלוח שלנו הוא ריבוע, אז הוא חייב להיכנס בשלמותו לצד הקטן יותר.
-        int smallerDimension = Math.min(width, height); 
+        int smallerDimension = Math.min(width, height);
         
-        // מחשב את גודל הבלוק על ידי חלוקת המימד הקטן במספר הבלוקים (19). 
-        // בגלל שזה משתנה שלם (int), התוצאה מעוגלת כלפי מטה אוטומטית (למשל 600 / 19 = 31).
-        blockSize = smallerDimension / N_BLOCKS; 
+        blockSize = smallerDimension / N_BLOCKS;
         
-        // **תיקון קריטי לחיי המשחק**: כפיית גודל בלוק שמתחלק ב-4 (המהירות שלנו)!
-        // אנחנו בודקים אם גודל הבלוק מתחלק ב-4 ללא שארית (כלומר מודולו 4 שווה ל-0).
         int remainder = blockSize % 4;
         
-        // אם יש שארית (הבלוק הוא למשל 31, אז השארית ב-4 היא 3), מורידים את השארית מגודל הבלוק (31-3 = 28).
-        // עכשיו גודל הבלוק הוא 28. ופקמן, שזז כל פעם 4 פיקסלים, מתישהו יהיה בדיוק על 28 (0, 4, 8, ... 28).
-        // זה מבטיח שהדמויות יפגשו צמתים בצורה מושלמת ולא יעברו דרך קירות.
         if (remainder != 0) {
             blockSize -= remainder;
         }
         
-        // מחשב את הגודל הסופי של כל הלוח (אחרי הקיצוצים של העיגול והכפולות של 4).
         int boardSize = N_BLOCKS * blockSize;
         
-        // מחשב כמה פיקסלים ריקים (שוליים שחורים) נשארו בצדדים ומחלק ב-2. 
-        // זה ההיסט (Offset) שיאפשר לנו למרכז את הלוח באמצע החלון.
-        int screenOffsetX = (width - boardSize) / 2; // שוליים אופקיים חלקי 2
-        int screenOffsetY = (height - boardSize) / 2; // שוליים אנכיים חלקי 2
+        int screenOffsetX = (width - boardSize) / 2;
+        int screenOffsetY = (height - boardSize) / 2;
 
-        // קובע את צבע המכחול לשחור.
-        g.setColor(Color.BLACK); 
-        // מצייר מלבן שחור על פני כל החלון כדי למחוק את המסך הקודם (כמו מחיקת לוח בבית ספר לפני הציור הבא).
-        g.fillRect(0, 0, width, height); 
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, width, height);
 
-        // יצירת גופנים מותאמים אישית לתווי הנגינה. 
-        // גופן רגיל קטן. הגודל מחושב יחסית לגודל הבלוק, עם מינימום של 10 פיקסלים.
         Font smallMusicFont = new Font("SansSerif", Font.PLAIN, Math.max(10, blockSize / 2));
         
-        // גופן מודגש (BOLD) גדול עבור התו הגדול שנותן יותר נקודות.
         Font largeMusicFont = new Font("SansSerif", Font.BOLD, Math.max(16, (int)(blockSize * 0.8)));
 
-        // לולאת `for` קלאסית שעוברת על כל התאים במערך הלוח. הלולאה תרוץ 361 פעמים (מ-0 עד 360).
-        for (int i = 0; i < N_BLOCKS * N_BLOCKS; i++) { 
+        for (int i = 0; i < N_BLOCKS * N_BLOCKS; i++) {
             
-            // מחשב את עמודת הבלוק (X). הנוסחה % (מודולו) נותנת את השארית. 
-            // אם אנחנו באינדקס 25, אז 25%19 = עמודה 6. מכפילים בגודל הבלוק ומוסיפים את ההיסט למרכז המסך.
             int x = (i % N_BLOCKS) * blockSize + screenOffsetX;
             
-            // מחשב את שורת הבלוק (Y). הנוסחה / נותנת את מספר השורות השלמות (ללא שארית).
-            // למשל אינדקס 25: 25/19 = שורה 1. מכפילים בגודל הבלוק ומוסיפים את ההיסט למרכז.
             int y = (i / N_BLOCKS) * blockSize + screenOffsetY;
 
-            // בודק את הערך במערך בתא הנוכחי (אינדקס i) ומחליט מה לצייר בו:
-            if (levelData[i] == 1) { // 1 אומר שצריך לצייר תו נגינה רגיל קטן
-                g.setColor(Color.WHITE); // קובע מכחול לבן
-                g.setFont(smallMusicFont); // מפעיל את הגופן הקטן שהכנו קודם
-                FontMetrics fm = g.getFontMetrics(); // FontMetrics מאפשר לנו למדוד מה יהיה האורך הפיזי של התו במסך
+            if (levelData[i] == 1) {
+                g.setColor(Color.WHITE);
+                g.setFont(smallMusicFont);
+                FontMetrics fm = g.getFontMetrics();
                 
-                // התו של התו (חחח) - `\u266A` הוא קוד יוניקוד (Unicode) לציור של צליל שמינית (Eighth Note ♪).
                 String note = "\u266A";
                 
-                // הנוסחאות המסובכות האלה עוזרות למרכז את הטקסט בדיוק באמצע הריבוע. 
-                // אנחנו לוקחים את חצי מהרווח שנשאר במשבצת אחרי הורדת רוחב הטקסט.
                 int textX = x + (blockSize - fm.stringWidth(note)) / 2;
                 
-                // Ascent זה הגובה של האותיות מעל "קו הבסיס" שעליו הן יושבות (כמו בשורות במחברת). זה נדרש למיקום נכון.
                 int textY = y + ((blockSize - fm.getHeight()) / 2) + fm.getAscent();
                 
-                g.drawString(note, textX, textY); // מצייר את הטקסט (התו) על המסך
+                g.drawString(note, textX, textY);
                 
-            } else if (levelData[i] == 2) { // 2 אומר שצריך לצייר תו גדול שנותן יותר נקודות (Power Pellet)
-                g.setColor(Color.WHITE); // קובע מכחול לבן
-                g.setFont(largeMusicFont); // מפעיל את הגופן הגדול שהכנו
-                FontMetrics fm = g.getFontMetrics(); // מודד שוב לפי הגופן החדש
+            } else if (levelData[i] == 2) {
+                g.setColor(Color.WHITE);
+                g.setFont(largeMusicFont);
+                FontMetrics fm = g.getFontMetrics();
                 
-                // `\u266B` הוא קוד היוניקוד לצמד תווים מחוברים (Beamed Eighth Notes ♫).
                 String note = "\u266B";
                 
-                // חישובי מרכוז מחדש
                 int textX = x + (blockSize - fm.stringWidth(note)) / 2;
                 int textY = y + ((blockSize - fm.getHeight()) / 2) + fm.getAscent();
                 
-                g.drawString(note, textX, textY); // מצייר את צמד התווים הגדולים!
+                g.drawString(note, textX, textY);
                 
-            } else if (levelData[i] == 3) { // 3 אומר שיש פה קיר של המבוך שאי אפשר לעבור בו
-                g.setColor(new Color(2, 2, 237)); // קובע מכחול לצבע כחול כהה (ערכי RGB של 0,0,128)
-                g.fillRect(x, y, blockSize, blockSize); // מצייר מלבן מלא לפי הגודל של משבצת אחת. זהו בלוק אחד של הקיר.
+            } else if (levelData[i] == 3) {
+                g.setColor(new Color(2, 2, 237));
+                g.fillRect(x, y, blockSize, blockSize);
             }
         }
     }
 
-    // מתודה ציבורית (public) שמאפשרת לשאר המחלקות (כמו פקמן או הרוחות) לדעת מה הגודל העדכני של הבלוקים.
-    // מכונה Getter (גטר).
     public int getBlockSize() { return blockSize; }
     
-    // פונקציה מסוג Getter להחזרת כמות הבלוקים בשורה/עמודה (19). שימושי לחישובי גבולות.
     public int getNBlocks() { return N_BLOCKS; }
     
-    // פונקציה מסוג Getter שמחזירה את מערך המפה כולו כהפניה (Reference), כך שהדמויות יוכלו לקרוא אותו וגם לשנות אותו.
     public short[] getLevelData() { return levelData; }
     
-    // פונקציה חדשה שהוספנו במיוחד עבור אכילת התווים.
-    // היא מקבלת מספר אינדקס (מיקום במערך שבין 0 ל-360) של משבצת ספציפית.
     public void eatItem(int index) {
-        // בודק (כדי שלא נקרוס על OutOfBounds) שהאינדקס אכן חוקי.
         if (index >= 0 && index < levelData.length) {
-            // ואז היא פשוט מחליפה את הערך בתא הזה ל-0 (כלומר, "משבצת ריקה").
-            // בפעם הבאה שהטיימר יצייר את המסך ב-drawBoard, במקום תו תהיה משבצת ריקה כיוון שהיא שונתה פה.
             levelData[index] = 0;
         }
     }
 
-    // New method to check if all items have been eaten
     public boolean isAllItemsEaten() {
         for (int i = 0; i < levelData.length; i++) {
             if (levelData[i] == 1 || levelData[i] == 2) {
-                return false; // Found an item that hasn't been eaten
+                return false;
             }
         }
-        return true; // All items have been eaten
+        return true;
     }
 }
