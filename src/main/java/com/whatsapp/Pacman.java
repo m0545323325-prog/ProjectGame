@@ -16,6 +16,7 @@ public class Pacman extends Character implements Runnable {
     
     private volatile int viewAngle = 30; 
 
+
     public Pacman(int x, int y, Board board) { 
         super(x, y); 
         this.board = board; 
@@ -23,6 +24,8 @@ public class Pacman extends Character implements Runnable {
         this.req_dy = 0; 
     }
 
+
+     //מזיזה את פקמן באופן רציף ועוצרת לזמן קצר.
     @Override
     public void run() {
         while (running) {
@@ -36,14 +39,20 @@ public class Pacman extends Character implements Runnable {
         }
     }
     
+    //עוצר תפקמן אחרי שמת
     public void stopThread() {
         running = false;
     }
+
+    // מחזירה את הניקוד הנוכחי של פקמן.
 
     public int getScore() {
         return score;
     }
 
+    /**
+      מציירת את פקמן על המסך.
+     */
     @Override 
     public void draw(Graphics g, int size, int screenOffsetX, int screenOffsetY) { 
         int drawX = x + screenOffsetX; 
@@ -51,9 +60,12 @@ public class Pacman extends Character implements Runnable {
         
         g.setColor(Color.YELLOW); 
         
-        g.fillArc(drawX, drawY, size, size, viewAngle, 300); 
+        g.fillArc(drawX, drawY, size, size, viewAngle, 300);
     }
 
+    /**
+     *לוגיקת התנועה של פקמן, כולל בדיקת התנגשויות עם קירות, אכילת פריטים ושיגור דרך מנהרות.
+     */
     @Override 
     public void move(Board board) { 
         int blockSize = board.getBlockSize(); 
@@ -70,6 +82,7 @@ public class Pacman extends Character implements Runnable {
 
             if (currentYBlock >= 0 && currentYBlock < nBlocks && currentXBlock >= 0 && currentXBlock < nBlocks) {
                 
+                // לוגיקת אכילת פריטים
                 if (levelData[currentBlockIndex] == 1) { 
                     board.eatItem(currentBlockIndex); 
                     score += 1; 
@@ -80,6 +93,7 @@ public class Pacman extends Character implements Runnable {
                     SoundManager.notifyEat(); 
                 }
 
+                // בדיקה אם תנועה מבוקשת אפשרית
                 boolean requestedMoveIsPossible = false;
                 
                 if (req_dx < 0) { 
@@ -97,6 +111,7 @@ public class Pacman extends Character implements Runnable {
                     if (currentYBlock < nBlocks - 1 && levelData[(currentYBlock + 1) * nBlocks + currentXBlock] != 3) requestedMoveIsPossible = true;
                 }
 
+                // ציור התנועה
                 if (requestedMoveIsPossible) {
                     dx = req_dx;
                     dy = req_dy;
@@ -112,6 +127,7 @@ public class Pacman extends Character implements Runnable {
                     }
                 }
 
+                // בדיקה אם הכיוון הנוכחי מוביל לקיר
                 boolean currentDirectionLeadsToWall = false;
                 
                 if (dx < 0) { 
@@ -132,6 +148,7 @@ public class Pacman extends Character implements Runnable {
                     }
                 }
 
+                // אם הכיוון הנוכחי מוביל לקיר, עצור את פקמן.
                 if (currentDirectionLeadsToWall) {
                     dx = 0;
                     dy = 0;
@@ -141,6 +158,7 @@ public class Pacman extends Character implements Runnable {
 
         performMove();
 
+        // לוגיקת שיגור מנהרה
         int nBlocks = board.getNBlocks();
         if (y == 9 * blockSize) {
             if (x < -size) { 
@@ -152,6 +170,9 @@ public class Pacman extends Character implements Runnable {
         }
     }
 
+    /**
+     * מטפלת בלחיצות מקשים של המשתמש כדי לשנות את הכיוון המבוקש של פקמן.
+     */
     public void keyPressed(KeyEvent e) { 
         int key = e.getKeyCode(); 
 

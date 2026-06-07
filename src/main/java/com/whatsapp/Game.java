@@ -40,10 +40,16 @@ public class Game extends JPanel implements ActionListener {
     private JButton rulesButton;
     private JButton backButton;
 
+    /**
+     * Constructor for the Game class. Initializes the game components and UI.
+     */
     public Game() { 
         initGame(); 
     }
 
+    /**
+     * Initializes the game's UI components such as buttons, text fields, and sets up event listeners.
+     */
     private void initGame() { 
         setLayout(null); 
         
@@ -56,8 +62,8 @@ public class Game extends JPanel implements ActionListener {
 
         startMenuButton = new JButton("התחל משחק");
         startMenuButton.setFont(new Font("Arial", Font.BOLD, 24));
-        startMenuButton.setBackground(Color.YELLOW);
-        startMenuButton.setForeground(Color.BLACK);
+        startMenuButton.setBackground(Color.RED);
+        startMenuButton.setForeground(Color.YELLOW);
         startMenuButton.setFocusable(false);
         startMenuButton.addActionListener(e -> startGameFromMenu());
         add(startMenuButton);
@@ -83,15 +89,21 @@ public class Game extends JPanel implements ActionListener {
         
         addKeyListener(new TAdapter()); 
         setFocusable(true); 
-        setBackground(Color.BLACK); 
+        setBackground(Color.YELLOW);
         
         renderTimer = new Timer(16, this); 
     }
 
+    /**
+     * Starts the game's rendering timer.
+     */
     public void startGame() { 
         renderTimer.start(); 
     }
     
+    /**
+     * Initiates the game from the main menu, setting the player name and transitioning to the PLAYING state.
+     */
     private void startGameFromMenu() {
         String inputName = nameField.getText().trim();
         if (!inputName.isEmpty() && !inputName.equals("הכנס שם")) {
@@ -106,6 +118,9 @@ public class Game extends JPanel implements ActionListener {
         restartGame(); 
     }
     
+    /**
+     * Displays the game rules screen.
+     */
     private void showRules() {
         currentState = GameState.RULES;
         nameField.setVisible(false);
@@ -114,6 +129,9 @@ public class Game extends JPanel implements ActionListener {
         backButton.setVisible(true);
     }
     
+    /**
+     * Returns the game to the main menu screen.
+     */
     private void backToMenu() {
         currentState = GameState.MENU;
         backButton.setVisible(false);
@@ -122,6 +140,9 @@ public class Game extends JPanel implements ActionListener {
         rulesButton.setVisible(true);
     }
     
+    /**
+     * Restarts the game, reinitializing the board, Pacman, and ghosts.
+     */
     private void restartGame() {
         replayButton.setVisible(false);
         isGameOver = false;
@@ -162,6 +183,11 @@ public class Game extends JPanel implements ActionListener {
         requestFocusInWindow(); 
     }
 
+    /**
+     * Updates the positions and sizes of Pacman and ghosts based on a new block size,
+     * typically after a window resize.
+     * @param blockSize The new size of a game block in pixels.
+     */
     private void updateCharacterPositions(int blockSize) { 
         if (pacman == null) return;
         
@@ -181,6 +207,9 @@ public class Game extends JPanel implements ActionListener {
         currentBlockSize = blockSize; 
     }
     
+    /**
+     * Starts the threads for Pacman and all ghosts, allowing them to move independently.
+     */
     private void startThreads() {
         pacmanThread = new Thread(pacman, "Pacman-Thread");
         pacmanThread.start();
@@ -192,6 +221,9 @@ public class Game extends JPanel implements ActionListener {
         }
     }
     
+    /**
+     * Stops all character threads (Pacman and ghosts).
+     */
     private void stopThreads() {
         if (pacman != null) pacman.stopThread();
         if (ghosts != null) {
@@ -201,6 +233,11 @@ public class Game extends JPanel implements ActionListener {
         }
     }
 
+    /**
+     * Overrides the paintComponent method to handle custom drawing for the game.
+     * It delegates drawing to specific methods based on the current game state.
+     * @param g The Graphics object used for drawing.
+     */
     @Override 
     public void paintComponent(Graphics g) { 
         super.paintComponent(g); 
@@ -217,6 +254,12 @@ public class Game extends JPanel implements ActionListener {
         }
     }
     
+    /**
+     * Draws the main menu screen.
+     * @param g The Graphics object.
+     * @param width The width of the panel.
+     * @param height The height of the panel.
+     */
     private void drawMenu(Graphics g, int width, int height) {
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, width, height);
@@ -238,8 +281,14 @@ public class Game extends JPanel implements ActionListener {
         rulesButton.setBounds((width / 2) - 100, height / 2 + 130, 200, 40);
     }
     
+    /**
+     * Draws the game rules screen.
+     * @param g The Graphics object.
+     * @param width The width of the panel.
+     * @param height The height of the panel.
+     */
     private void drawRules(Graphics g, int width, int height) {
-        g.setColor(Color.BLACK);
+        g.setColor(Color.DARK_GRAY);
         g.fillRect(0, 0, width, height);
         
         g.setColor(Color.YELLOW);
@@ -267,8 +316,8 @@ public class Game extends JPanel implements ActionListener {
             "3. היזהר מרוחות הרפאים! מגע בהן שווה לפסילה.",
             "4. מנהרות בצדדים מאפשרות להשתגר לצד השני."
         };
-        
-        int yOffset = 150;
+        //עיצוב הטקסט בחוקים וההוראות
+        int yOffset = 150 ;
         for (String rule : rules) {
             int strWidth = g.getFontMetrics().stringWidth(rule);
             g.drawString(rule, (width - strWidth) / 2, yOffset);
@@ -306,8 +355,8 @@ public class Game extends JPanel implements ActionListener {
         }
         
         if (isGameOver) {
-            g.setColor(Color.WHITE); 
-            g.setFont(new Font("Arial", Font.BOLD, 40)); 
+            g.setColor(Color.ORANGE);
+            g.setFont(new Font("Arial", Font.BOLD, 60));
             String msg;
             if (isGameWon) {
                 msg = "כל הכבוד!"; 
@@ -320,6 +369,7 @@ public class Game extends JPanel implements ActionListener {
         }
     }
 
+
     @Override 
     public void actionPerformed(ActionEvent e) { 
         if (currentState == GameState.PLAYING && pacman != null) { 
@@ -327,7 +377,7 @@ public class Game extends JPanel implements ActionListener {
         }
         repaint(); 
     }
-    
+
     private void checkCollisions() { 
         if (isGameOver) return;
         
@@ -357,7 +407,7 @@ public class Game extends JPanel implements ActionListener {
         }
     }
 
-    private class TAdapter extends KeyAdapter { 
+    private class TAdapter extends KeyAdapter {
         @Override 
         public void keyPressed(KeyEvent e) { 
             if (currentState == GameState.PLAYING && pacman != null && !isGameOver) { 

@@ -17,6 +17,7 @@ public class SoundManager {
     
     private static Thread monitorThread;
 
+    //רעש שאוכל תווים
     public static void loadBackgroundMusic(String fileName) {
         try {
             File soundFile = new File("src/main/resources/" + fileName);
@@ -58,7 +59,6 @@ public class SoundManager {
                     while (true) {
                         try {
                             Thread.sleep(50);
-                            // הגדלתי את זמן ההמתנה ל-1500 מילישניות (שנייה וחצי)
                             if (isMusicPlaying && System.currentTimeMillis() - lastEatTime > 1500) {
                                 pauseMusic();
                             }
@@ -76,26 +76,34 @@ public class SoundManager {
         }
     }
 
+    /**
+     * Notifies the SoundManager that an item has been eaten.
+     * This resets the timer for pausing background music and ensures music is playing.
+     */
     public static void notifyEat() {
         lastEatTime = System.currentTimeMillis();
         
         if (backgroundMusic != null) {
             if (!isMusicPlaying) {
                 isMusicPlaying = true;
-                // הפונקציה loop כבר מתחילה את הניגון בעצמה, אין צורך לקרוא גם ל-start()
-                // שגרם כנראה להתנגשויות בתוך מנוע השמע של Java.
                 backgroundMusic.loop(Clip.LOOP_CONTINUOUSLY);
             }
         }
     }
 
+    /**
+     * Pauses the background music if it is currently playing.
+     */
     public static void pauseMusic() {
         if (backgroundMusic != null && isMusicPlaying) {
-            backgroundMusic.stop(); // עושה Pause
+            backgroundMusic.stop();
             isMusicPlaying = false;
         }
     }
     
+    /**
+     * Stops the background music and resets its position to the beginning.
+     */
     public static void stopMusic() {
         if (backgroundMusic != null) {
             backgroundMusic.stop();
@@ -104,6 +112,11 @@ public class SoundManager {
         }
     }
 
+    /**
+     * Plays a one-shot sound effect from the specified file in a new thread.
+     * Handles WAV file format conversion if necessary.
+     * @param soundFileName The name of the sound effect file to play (e.g., "gameover.wav").
+     */
     public static void playSound(String soundFileName) {
         new Thread(() -> {
             try {
@@ -130,11 +143,14 @@ public class SoundManager {
                     }
                 }
             } catch (Exception e) {
-                // מתעלם בשקט משגיאות של אפקטים צדדיים
+                // Silently ignore side effect errors
             }
         }).start();
     }
     
+    /**
+     * Stops and closes the currently active sound effect, if any.
+     */
     public static void stopActiveSoundEffect() {
         if (activeSoundEffect != null && activeSoundEffect.isRunning()) {
             activeSoundEffect.stop();

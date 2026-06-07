@@ -19,6 +19,7 @@ public class Ghost extends Character implements Runnable {
     
     private Image ghostImage;
 
+
     public Ghost(int x, int y, Color color, Board board, Pacman pacman) {
         super(x, y);
         this.color = color;
@@ -29,7 +30,7 @@ public class Ghost extends Character implements Runnable {
             ghostImage = ImageIO.read(new File("src/main/resources/ghost.jpg"));
         } catch (Exception e) {
             ghostImage = null;
-            System.out.println("Error loading ghost.jpg: " + e.getMessage());
+            System.out.println("שגיאה בטעינת ghost.jpg: " + e.getMessage());
         }
         
         this.dx = 0;
@@ -48,10 +49,21 @@ public class Ghost extends Character implements Runnable {
         }
     }
     
+    /**
+     * Stops the ghost's movement thread.
+     */
     public void stopThread() {
         running = false;
     }
 
+    /**
+     * Draws the ghost on the screen.
+     * If a ghost image is loaded, it draws the image; otherwise, it draws a colored rectangle with eyes.
+     * @param g The Graphics object used for drawing.
+     * @param size The size of the ghost.
+     * @param screenOffsetX The X-offset for centering the board.
+     * @param screenOffsetY The Y-offset for centering the board.
+     */
     @Override
     public void draw(Graphics g, int size, int screenOffsetX, int screenOffsetY) {
         int drawX = x + screenOffsetX;
@@ -73,6 +85,7 @@ public class Ghost extends Character implements Runnable {
         }
     }
     
+//מחשב איפה המקמן כדי להגיע עליו ומחשב איפה הקירות
     @Override
     public void move(Board board) {
         if (board.getBlockSize() == 0) return;
@@ -91,18 +104,22 @@ public class Ghost extends Character implements Runnable {
                 List<int[]> validMoves = new ArrayList<>();
                 List<Double> validDistances = new ArrayList<>();
 
+                // Check right
                 if (currentXBlock < nBlocks - 1 && levelData[currentYBlock * nBlocks + currentXBlock + 1] != 3) {
                     validMoves.add(new int[]{speed, 0});
                     validDistances.add(calculateManhattanDistance(currentXBlock + 1, currentYBlock, pacmanXBlock, pacmanYBlock));
                 }
+                // Check left
                 if (currentXBlock > 0 && levelData[currentYBlock * nBlocks + currentXBlock - 1] != 3) {
                     validMoves.add(new int[]{-speed, 0});
                     validDistances.add(calculateManhattanDistance(currentXBlock - 1, currentYBlock, pacmanXBlock, pacmanYBlock));
                 }
+                // Check down
                 if (currentYBlock < nBlocks - 1 && levelData[(currentYBlock + 1) * nBlocks + currentXBlock] != 3) {
                     validMoves.add(new int[]{0, speed});
                     validDistances.add(calculateManhattanDistance(currentXBlock, currentYBlock + 1, pacmanXBlock, pacmanYBlock));
                 }
+                // Check up
                 if (currentYBlock > 0 && levelData[(currentYBlock - 1) * nBlocks + currentXBlock] != 3) {
                     validMoves.add(new int[]{0, -speed});
                     validDistances.add(calculateManhattanDistance(currentXBlock, currentYBlock - 1, pacmanXBlock, pacmanYBlock));
@@ -114,18 +131,23 @@ public class Ghost extends Character implements Runnable {
                 boolean isInitialMove = (dx == 0 && dy == 0);
 
                 if (isInitialMove) {
+                    // For the very first move, any valid direction is possible.
                     possibleMoves.addAll(validMoves);
                     distances.addAll(validDistances);
                 } else {
+                    // For subsequent moves, filter out direct reversals.
                     for (int i = 0; i < validMoves.size(); i++) {
                         int[] move = validMoves.get(i);
+                        // Check if this move is a direct reversal of the current direction
                         if (!((move[0] == -dx && move[1] == -dy) || (move[0] == dx && move[1] == dy && dx == 0 && dy == 0))) {
                             possibleMoves.add(move);
                             distances.add(validDistances.get(i));
                         }
                     }
 
+                    // If all non-reversing moves are blocked, then reversing is the only option.
                     if (possibleMoves.isEmpty() && !validMoves.isEmpty()) {
+                        // Find the reverse move in validMoves and add it.
                         for (int i = 0; i < validMoves.size(); i++) {
                             int[] move = validMoves.get(i);
                             if (move[0] == -dx && move[1] == -dy) {
@@ -158,10 +180,14 @@ public class Ghost extends Character implements Runnable {
                     dy = chosenMove[1];
 
                 } else {
+                    // This case should ideally not be reached if the maze is valid and not a dead end.
+                    // If it is reached, it means the ghost is completely trapped or has no valid moves.
+                    // Reversing current direction as a last resort.
                     dx = -dx;
                     dy = -dy;
                 }
             } else {
+                 // Ghost is somehow outside the board boundaries, reverse direction.
                  dx = -dx;
                  dy = -dy;
             }
@@ -170,6 +196,15 @@ public class Ghost extends Character implements Runnable {
         performMove();
     }
 
+    /**
+     * Calculates the Manhattan distance between the ghost and Pacman.
+     * This is used to determine which move brings the ghost closer to Pacman.
+     * @param ghostX The X-coordinate of the ghost (in blocks).
+     * @param ghostY The Y-coordinate of the ghost (in blocks).
+     * @param pacmanX The X-coordinate of Pacman (in blocks).
+     * @param pacmanY The Y-coordinate of Pacman (in blocks).
+     * @return The Manhattan distance.
+     */
     private double calculateManhattanDistance(int ghostX, int ghostY, int pacmanX, int pacmanY) {
         return Math.abs(ghostX - pacmanX) + Math.abs(ghostY - pacmanY);
     }

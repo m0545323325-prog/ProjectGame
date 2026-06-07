@@ -15,6 +15,7 @@ public abstract class Character {
     
     protected volatile int size = 20; 
 
+
     public Character(int x, int y) { 
         this.x = x;
         this.y = y; 
@@ -25,13 +26,15 @@ public abstract class Character {
         y += dy;
     }
 
+
     public abstract void move(Board board);
 
     public int getX() { return x; }
     
+
     public int getY() { return y; }
-    
-    public void setPosition(int x, int y) { 
+
+    public void setPosition(int x, int y) {
         this.x = x; 
         this.y = y; 
     }
@@ -40,9 +43,11 @@ public abstract class Character {
         return new Rectangle(x, y, size, size);
     }
     
+
     public void updateSize(int newSize) { 
         this.size = newSize; 
     }
+
 
     public abstract void draw(Graphics g, int size, int screenOffsetX, int screenOffsetY);
 }
